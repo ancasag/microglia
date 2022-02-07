@@ -13,7 +13,7 @@ if (File.exists(dirOutput)==false) {
 }
 
 files=getFileList(directory);
-print(files.length);
+
 nucleos = newArray(files.length);
 areasN = newArray(files.length);
 mediasN = newArray(files.length);
@@ -28,7 +28,6 @@ for (j=0; j<files.length; j++) {
 	{
 		showProgress(j, files.length);
 		path = directory+File.separator+files[j];
-		print(path);
 		open(path);
 		title=getTitle();
 		getStatistics(area, meanI, min, max, std, histogram);
@@ -66,7 +65,9 @@ for (j=0; j<files.length; j++) {
 		}
 		close();
 		selectWindow(title);
-		roiManager("Show All without labels");
+		
+		selectWindow("ROI Manager");
+		roiManager("Show All with labels");
 		waitForUser("Añade/elimina los nucleos");
 		setTool("point");
 		roiNew = newArray(n);
@@ -142,7 +143,7 @@ for (j=0; j<files.length; j++) {
 		run("Dilate");
 		run("Analyze Particles...", "size=0.005-Infinity add");
 		selectWindow(title);
-		roiManager("Show All without labels");
+		roiManager("Show All with labels");
 		selectWindow("dup2_"+title);
 		close();
 		selectWindow("dup_"+title);
@@ -150,6 +151,7 @@ for (j=0; j<files.length; j++) {
 		selectWindow("Result of "+"dup_"+title);
 		close();
 		roiManager("Measure");
+		selectWindow("ROI Manager");
 		waitForUser("Añade/elimina los nucleos");
 		//setTool("freehand");
 		//------------------------------------------------------------------------------------------------------------------------------------
@@ -157,17 +159,18 @@ for (j=0; j<files.length; j++) {
 		//------------------------------------------------------------------------------------------------------------------------------------
 		selectWindow(title);
 		//saveAs("Tiff",dirOutput+File.separator+title);
-		saveAs("Results", dirOutput+File.separator+title+".csv");
-		//roiManager("Save", dirOutput+File.separator+title+".zip");
+		saveAs("Results", dirOutput+File.separator+title+"Nucleo.csv");
+		roiManager("Save", dirOutput+File.separator+title+"Nucleo.zip");
 		totalAreaN = 0.0;
 		totalMediaN = 0.0;
 		totalStdN = 0.0;
 		for (k = 0; k < nResults();k++) {
-		    v = getResult('Areas ', k);
+		    v = getResult('Area', k);
     		totalAreaN = totalAreaN + v;
     		
 		}
 		nucleos[j] = nResults();
+		
 		areasN[j] = totalAreaN;
 		mediasN[j] = totalAreaN/nResults();
 		
@@ -190,6 +193,9 @@ for (j=0; j<files.length; j++) {
 		//------------------------------------------------------------------------------------------------------------------------------------
 
 		selectWindow(title);
+		
+		roiManager("Deselect");
+		run("Select All");
 		run("Duplicate...", " ");
 		rename("dup_"+title);
 		selectWindow("dup_"+title);
@@ -267,7 +273,8 @@ for (j=0; j<files.length; j++) {
 		roiManager("Measure");
 		selectWindow(title);
 		saveAs("Tiff",dirOutput+File.separator+title);
-		roiManager("Save", dirOutput+File.separator+title+".zip");
+		roiManager("Save", dirOutput+File.separator+title+"Ramificaciones.zip");
+		saveAs("Results", dirOutput+File.separator+title+"Ramificaciones.csv");
 		totalAreaR = 0.0;
 		totalMediaR = 0.0;
 		totalStdR = 0.0;
@@ -275,7 +282,6 @@ for (j=0; j<files.length; j++) {
 		    v = getResult('Area', k);
     		totalAreaR = totalAreaR + v;
 		}
-		print(j);
 		areasR[j] = totalAreaR;
 		mediasR[j] = totalAreaR/nResults();
 
@@ -311,5 +317,4 @@ saveAs("Results", dirOutput+File.separator+title+"General.csv");
 if(isOpen("Results")){
 			selectWindow("Results");
 			run("Close");
-		}
-print("Done!");
+}
