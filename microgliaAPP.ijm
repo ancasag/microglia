@@ -1,6 +1,7 @@
 batchMode=false;
 outputFolder="_Output";
-
+setBackgroundColor(255,255,255);
+setForegroundColor(0, 0, 0);
 
 //PROCESS 
 setBatchMode(batchMode);
@@ -30,6 +31,8 @@ for (j=0; j<files.length; j++) {
 		path = directory+File.separator+files[j];
 		open(path);
 		title=getTitle();
+		auxtitleWithoutExt=split(title, ".");
+		titleWithoutExt = auxtitleWithoutExt[0];
 		getStatistics(area, meanI, min, max, std, histogram);
 		//-----------------------------------------------------------------------------------------------------------
 		//Aquí estamos detectando los nucleos
@@ -158,9 +161,16 @@ for (j=0; j<files.length; j++) {
 		// Aqui estamos calculando todos los excels de los nucleos
 		//------------------------------------------------------------------------------------------------------------------------------------
 		selectWindow(title);
+		run("Duplicate...", " ");
+		rename("dup_"+title);
+		selectWindow("dup_"+title);
+		roiManager("Show All without labels");
+		
+		roiManager("Draw");
+		saveAs("Tiff",dirOutput+File.separator+titleWithoutExt+"Nucleos.tif");
 		//saveAs("Tiff",dirOutput+File.separator+title);
-		saveAs("Results", dirOutput+File.separator+title+"Nucleo.csv");
-		roiManager("Save", dirOutput+File.separator+title+"Nucleo.zip");
+		saveAs("Results", dirOutput+File.separator+titleWithoutExt +"Nucleo.csv");
+		roiManager("Save", dirOutput+File.separator+titleWithoutExt +"Nucleo.zip");
 		totalAreaN = 0.0;
 		totalMediaN = 0.0;
 		totalStdN = 0.0;
@@ -184,7 +194,8 @@ for (j=0; j<files.length; j++) {
 		stdN[j] = sqrt(totalStdN/nResults());
 
 		roiManager("reset");
-		//close();
+		selectWindow(titleWithoutExt+"Nucleos.tif");
+		run("Close" );
 		selectWindow("Results");
         run("Close" );
 
@@ -272,9 +283,9 @@ for (j=0; j<files.length; j++) {
 		//------------------------------------------------------------------------------------------------------------------------------------
 		roiManager("Measure");
 		selectWindow(title);
-		saveAs("Tiff",dirOutput+File.separator+title);
-		roiManager("Save", dirOutput+File.separator+title+"Ramificaciones.zip");
-		saveAs("Results", dirOutput+File.separator+title+"Ramificaciones.csv");
+		saveAs("Tiff",dirOutput+File.separator+titleWithoutExt +"Ramificaciones.tif");
+		roiManager("Save", dirOutput+File.separator+titleWithoutExt +"Ramificaciones.zip");
+		saveAs("Results", dirOutput+File.separator+titleWithoutExt +"Ramificaciones.csv");
 		totalAreaR = 0.0;
 		totalMediaR = 0.0;
 		totalStdR = 0.0;
@@ -313,7 +324,7 @@ for (i=0; i<files.length; i++) {
 	setResult("Desviacion Areas Ramificaciones", i, stdR[i]); 
 }
 
-saveAs("Results", dirOutput+File.separator+title+"General.csv");
+saveAs("Results", dirOutput+File.separator+"General.csv");
 if(isOpen("Results")){
 			selectWindow("Results");
 			run("Close");
