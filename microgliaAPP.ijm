@@ -1,4 +1,16 @@
-batchMode=false;
+Dialog.create("Automatic mode?");
+types = newArray("Yes", "No");
+Dialog.addChoice("Do you want to interact with the predictions?:", types);
+Dialog.show();
+type = Dialog.getChoice();
+if(type=="Yes"){
+	batchMode=false;	
+}else{
+	batchMode=true;	
+}
+
+
+
 outputFolder="_Output";
 setBackgroundColor(255,255,255);
 setForegroundColor(0, 0, 0);
@@ -34,6 +46,12 @@ for (j=0; j<files.length; j++) {
 		auxtitleWithoutExt=split(title, ".");
 		titleWithoutExt = auxtitleWithoutExt[0];
 		getStatistics(area, meanI, min, max, std, histogram);
+		if(meanI>200){
+		    	t =120;
+		    }else{
+		    	t = 110;
+		    }
+
 		//-----------------------------------------------------------------------------------------------------------
 		//Aquí estamos detectando los nucleos
 		//-----------------------------------------------------------------------------------------------------------
@@ -69,10 +87,10 @@ for (j=0; j<files.length; j++) {
 		close();
 		selectWindow(title);
 		
-		selectWindow("ROI Manager");
+		/*selectWindow("ROI Manager");
 		roiManager("Show All with labels");
 		waitForUser("Añade/elimina los nucleos");
-		setTool("point");
+		setTool("point");*/
 		roiNew = newArray(n);
 		k=0;
 		n1 = roiManager('count');
@@ -153,9 +171,82 @@ for (j=0; j<files.length; j++) {
 		close();
 		selectWindow("Result of "+"dup_"+title);
 		close();
+
+
+
+		selectWindow(title);
+		run("Duplicate...", " ");
+		rename("dup_"+title);
+
+		run("Split Channels");
+		selectWindow("dup_"+title+" (red)");
+		close();
+		selectWindow("dup_"+title+" (green)");
+		close();
+		selectWindow("dup_"+title+" (blue)");
+		
+
+		if(!batchMode){
+			
+
+			selectWindow("ROI Manager");
+			waitForUser("Añade/elimina los nucleos");
+		}
+
+		n = roiManager("count");
+		for(index=n-1;index>=0;index--){
+			
+			roiManager("select", index);
+			getStatistics(areaROI, meanROI,minROI);
+
+			if((areaROI>=0.01 && minROI<100) ){
+			//if((areaROI>=0.014 && minROI<t && meanROI<150) || (areaROI>0.01 && minROI<80 && meanROI<150)){
+				
+			}else{
+			
+			//if((areaROI<0.01) || (minROI > t)){
+				roiManager("delete");	
+			}
+			
+		}
+		
+
+
+		if(!batchMode){
+			
+
+			selectWindow("ROI Manager");
+			waitForUser("Añade/elimina los nucleos");
+		}
+
+		selectWindow("dup_"+title+" (blue)");
+		close();
+		roiManager("deselect");
 		roiManager("Measure");
-		selectWindow("ROI Manager");
-		waitForUser("Añade/elimina los nucleos");
+
+		/// Recalculando coordenadas de los puntos
+		n1 = roiManager('count');
+		xPointsNew = newArray(n1);
+		yPointsNew = newArray(n1);
+		for(i=0; i<n1;i++){
+			roiManager('select', i);
+			getSelectionCoordinates(xpunto, ypunto);
+		
+			x = xpunto[0];
+			y = ypunto[0];
+           	xPointsNew[i] = x;
+			yPointsNew[i] = y;
+
+			
+			//roiNew.append
+			//getSelectionCoordinates(xpoints, ypoints);
+			
+		}
+		roiManager("deselect");
+		run("Select None");
+
+
+		
 		//setTool("freehand");
 		//------------------------------------------------------------------------------------------------------------------------------------
 		// Aqui estamos calculando todos los excels de los nucleos
@@ -166,9 +257,12 @@ for (j=0; j<files.length; j++) {
 		selectWindow("dup_"+title);
 		roiManager("Show All without labels");
 		
+		
 		roiManager("Draw");
 		saveAs("Tiff",dirOutput+File.separator+titleWithoutExt+"Nucleos.tif");
 		//saveAs("Tiff",dirOutput+File.separator+title);
+		
+
 		saveAs("Results", dirOutput+File.separator+titleWithoutExt +"Nucleo.csv");
 		roiManager("Save", dirOutput+File.separator+titleWithoutExt +"Nucleo.zip");
 		totalAreaN = 0.0;
